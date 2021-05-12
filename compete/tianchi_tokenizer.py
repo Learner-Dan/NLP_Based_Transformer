@@ -1,12 +1,26 @@
 
 import transformers
 class TTokenizer(transformers.PreTrainedTokenizer):
-    def __init__(self,vocab_to_id,vocab_to_str,**kwargs):
-        super().__init__(**kwargs)
+    def __init__(self,vocab_to_id,vocab_to_str, bos_token="[CLS]",
+        eos_token="[SEP]",
+        unk_token="<unk>",
+        sep_token="[SEP]",
+        pad_token="<pad>",
+        cls_token="[CLS]",
+        mask_token="[MASK]",
+        **kwargs):
+        super().__init__(bos_token=bos_token,
+                        eos_token=eos_token,
+                        unk_token=unk_token,
+                        sep_token=sep_token,
+                        pad_token=pad_token,
+                        cls_token=cls_token,
+                        mask_token=mask_token,
+                        **kwargs)
         self.tokens_encode = vocab_to_id
         self.tokens_decode = vocab_to_str
-        # self.added_tokens_encoder = {"<mask>":1001, "0":0}
-        # self.added_tokens_decoder = {1001:"<mask>", 0:"0"}
+        self.sanitize_special_tokens()
+
 
     @property
     def vocab_size(self):
@@ -30,3 +44,10 @@ class TTokenizer(transformers.PreTrainedTokenizer):
 
     def save_vocabulary(self, save_directory: str, filename_prefix: str):
         return ("",)
+
+    def get_vocab(self):
+        vocab = {self.convert_ids_to_tokens(i): i for i in range(self.vocab_size)}
+        vocab.update(self.added_tokens_encoder)
+        return vocab
+
+    
