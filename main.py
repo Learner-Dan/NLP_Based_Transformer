@@ -3,12 +3,12 @@
 # @author DanHe
 # @description 
 # @created 2021-05-08T16:50:40.264Z+08:00
-# @last-modified 2021-05-12T19:11:19.687Z+08:00
+# @last-modified 2021-05-13T10:45:03.181Z+08:00
 #
 
 from datasets import load_dataset
 import transformers
-from transformers import DataCollatorForLanguageModeling,AutoModelForMaskedLM,Trainer
+from transformers import DataCollatorForLanguageModeling,AutoModelForMaskedLM,Trainer,AlbertModel,AlbertForMaskedLM
 from compete import tianchi_tokenizer
 import torch
 
@@ -38,8 +38,8 @@ t_DataCollator = DataCollatorForLanguageModeling(t_tokenizer,mlm=True,mlm_probab
 
 
 # 创建Albert模型配置
-albert_config = transformers.AlbertConfig(vocab_size=len(t_tokenizer),embedding_size=128,
-        num_hidden_layers=2,num_attention_heads=4,hidden_size=128,intermediate_size=256,
+albert_config = transformers.AlbertConfig(vocab_size=len(t_tokenizer),embedding_size=256,
+        num_hidden_layers=2,num_attention_heads=2,hidden_size=128,intermediate_size=256,
         pad_token_id=t_tokenizer.pad_token_id,
         bos_token_id=t_tokenizer.bos_token_id,
         eos_token_id=t_tokenizer.eos_token,
@@ -47,11 +47,13 @@ albert_config = transformers.AlbertConfig(vocab_size=len(t_tokenizer),embedding_
 
 # 创建Albert语言模型
 albert_model = AutoModelForMaskedLM.from_config(albert_config)
+# albert_model = AlbertForMaskedLM.from_pretrained("albert-base-v1")
+# albert_model.resize_token_embeddings(len(t_tokenizer))
 
 # 配置训练参数
-train_args = transformers.TrainingArguments(output_dir="./model",do_train=True,
-                                            learning_rate=0.001,num_train_epochs=30,
-                                            per_device_train_batch_size=32,lr_scheduler_type="cosine_with_restarts")
+train_args = transformers.TrainingArguments(output_dir="./model",do_train=True,logging_steps=50,
+                                            learning_rate=0.001,num_train_epochs=60,save_steps=2000,
+                                            per_device_train_batch_size=32,lr_scheduler_type="polynomial")
 
 
 # t = t_DataCollator(h["input_ids"])
