@@ -1,7 +1,7 @@
 from datasets import load_dataset
 import transformers
 from transformers import DataCollatorForLanguageModeling,AutoModelForMaskedLM,Trainer,default_data_collator
-from compete import tianchi_tokenizer
+from compete import tianchi_tokenizer,tianchi_AlbertForSequenceClassification
 import torch
 
 # 映射词典
@@ -35,12 +35,12 @@ def d_map(example):
 t_dataset = t_dataset.map(d_map,remove_columns=["text"],batched=True)
 t_val_dataset =t_val_dataset.map(d_map,remove_columns=["text"],batched=True)
 
-albert_class_model = transformers.AlbertForSequenceClassification.from_pretrained("/home/hedan/tools/Github/NLP_Based_Transformer/model/checkpoint-24000",num_labels=17)
+albert_class_model = tianchi_AlbertForSequenceClassification.TAlbertForSequenceClassification.from_pretrained("/home/hedan/tools/Github/NLP_Based_Transformer/model/checkpoint-24000",num_labels=17)
 
 # 配置训练参数
 train_args = transformers.TrainingArguments(output_dir="./modelclass",do_train=True,logging_steps=50,do_eval=True,
                                             learning_rate=0.0002,num_train_epochs=60,save_steps=2000,eval_steps=500,
-                                            per_device_train_batch_size=32,lr_scheduler_type="polynomial",evaluation_strategy="steps")
+                                            per_device_train_batch_size=32,lr_scheduler_type="constant",evaluation_strategy="steps")
 
 
 # t = t_DataCollator(h["input_ids"])
