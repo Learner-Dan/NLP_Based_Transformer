@@ -5,11 +5,14 @@ import torch
 
 class TAlbertForSequenceClassification(AlbertForSequenceClassification):
     def __init__(self,config,**kwargs):
-        super().__init__(config)
+        super().__init__(config,**kwargs)
         self.albert = AlbertModel(config,add_pooling_layer=False)
-        self.pooling = nn.MaxPool1d(107,1)
+        self.conv = nn.Conv1d(256,1024,10)
+        self.relu = nn.ReLU6()
+        self.pooling = nn.MaxPool1d(98,1)
         self.dropout = nn.Dropout(config.classifier_dropout_prob)
-        self.classifier = nn.Linear(config.hidden_size, self.config.num_labels)
+        self.classifier = nn.Linear(1024, 512)
+        self.out = nn.Linear(512, self.config.num_labels)
 
         self.init_weights()
 
@@ -47,11 +50,15 @@ class TAlbertForSequenceClassification(AlbertForSequenceClassification):
         )
         outputs_t = outputs[0]
         outputs_t = outputs_t.transpose(1,2)
+        outputs_t = self.conv(outputs_t)
+        outputs_t = self.relu(outputs_t)
+        # outputs_t = outputs_t.transpose(1,2)
         pooled_output = self.pooling(outputs_t).view(outputs_t.shape[0],-1)
 
         pooled_output = self.dropout(pooled_output)
         logits = self.classifier(pooled_output)
-
+        logits = self.relu(logits)
+        logits = self.out(logits)
         loss = None
         if labels is not None:
             loss_fct = torch.nn.BCEWithLogitsLoss()
